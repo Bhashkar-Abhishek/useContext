@@ -1,94 +1,80 @@
-import React, {useState} from 'react'
-import styles from './App.module.css'
+//https://jsonplaceholder.typicode.com/posts
+
+import React from "react";
+import './App.css';
+import { useContext, useEffect } from "react";
+import { createContext, useReducer, useState } from "react";
+
+const reducer = (state, action) => {
+  if (action.type == "Postdata") {
+    return action.payload;
+  }
+};
+
+const userData = createContext();
 
 export default function App() {
-    const [ans,setAns]= useState([]);
+  const [state, dispatch] = useReducer(reducer, []);
+  const [Ele, setEle] = useState("");
 
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/posts")
+      .then((resp) => resp.json())
+      .then((res) => {
+        dispatch({
+          type: "Postdata",
+          payload: res,
+        });
+      });
+  }, []);
 
-    function mouseOverh1(){
-       
-
-        setAns([...ans,{ 
-        tag : "h1",
-        event: "in",
-        ontime : new Date().toLocaleTimeString()}])
-    }
-
-    function mouseOverh2(){
-        
-        setAns([...ans, { 
-        tag : "h2",
-        event: "in",
-        ontime : new Date().toLocaleTimeString()}])
-    }
-
-    function mouseOverdiv(){
-        
-        setAns([...ans, {
-        tag : "div",
-        event: "in",
-        ontime : new Date().toLocaleTimeString()}])
-    }
-
-    function mouseOuth1(){
-        
-        setAns([...ans, {
-        tag : "h1",
-        event: "out",
-        ontime : new Date().toLocaleTimeString()}])
-    }
-
-    function mouseOuth2(){
-        
-        setAns([...ans, {
-        tag : "h2",
-        event: "out",
-        ontime : new Date().toLocaleTimeString()}])
-    }
-
-    function mouseOutdiv(){
-        
-        setAns([...ans, {
-        tag : "div",
-        event: "out",
-        ontime : new Date().toLocaleTimeString()}])
-    }
+  let value = {
+    state,
+    ele: Ele,
+    setEle: setEle,
+  };
 
   return (
-    <div className = {styles.parentCont}>
-        <div className ={styles.tag}>
-            <h1 onMouseOver={mouseOverh1} onMouseOut={mouseOuth1} className = {styles.h1}>h1</h1>
-            <h2 onMouseOver={mouseOverh2} onMouseOut={mouseOuth2} className = {styles.h2}>h2</h2>
-            <div onMouseOver={mouseOverdiv} onMouseOut={mouseOutdiv} className = {styles.div}>div</div>
-        </div>
-        <table className = {styles.table}>
-            <thead>          
-                <tr>
-                    <th className={styles.th}>Tag_Name</th>
-                    <th>Event_Name</th>
-                    <th>Time</th>
-                </tr>
-
-            </thead> 
-
-            <tbody>
-
-                {ans.map((element,key)=>{
-                    return(
-                        <tr key = {key}>
-                            <td>{element.tag}</td>
-                            <td>{element.event}</td>
-                            <td>{element.ontime}</td>
-                        </tr>
-                    )
-                })}
-
-            </tbody> 
-
-            
+    <div className="App">
      
-        </table>
-
+      <userData.Provider value={value}>
+        <POSTList />
+        <POSTDETAIL />
+      </userData.Provider>
     </div>
-  )
+  );
 }
+
+const POSTList = () => {
+  const { state, setEle } = useContext(userData);
+  console.log(state);
+
+  const handlelist = (ele) => {
+    setEle(ele);
+  };
+
+  return (
+    <ul className="ul-list">
+      {state.map((ele) => {
+        return <li onClick={() => handlelist(ele)}>{ele.title}</li>;
+      })}
+    </ul>
+  );
+};
+
+const POSTDETAIL = () => {
+  const data = useContext(userData);
+  const list = data.ele;
+
+  return (
+    <div className="detail-container">
+    <ul className="ul-body">
+      <li className="list-id">{list.id}</li>
+
+      <li className="list-userID">{list.userId}</li>
+      <li className="list-title">{list.title}</li>
+      <li className="list-body">{list.body}</li>
+    </ul>
+    </div>
+  );
+};
